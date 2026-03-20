@@ -6,38 +6,30 @@ type Affirmation struct {
     Author      string   `json:"author"`
     Keywords    []string `json:"keywords"`
     ChakraIndex int      `json:"chakra_index"`
+    DayOfYear   int      `json:"day_of_year,omitempty"`
 }
 
 type AffirmationDB struct {
-    affirmations map[string]Affirmation
+    affirmations []Affirmation
     medicalMap   map[string]string
 }
 
 func NewAffirmationDB() *AffirmationDB {
     db := &AffirmationDB{
-        affirmations: make(map[string]Affirmation),
+        affirmations: GetAllAffirmations(),
         medicalMap:   make(map[string]string),
     }
-    db.load()
+    db.loadMedicalMapping()
     return db
 }
 
-func (db *AffirmationDB) load() {
-    db.affirmations["lh_001"] = Affirmation{
-        ID: "lh_001", Text: "Я люблю и одобряю себя", Author: "Луиза Хей",
-        Keywords: []string{"self-love", "самолюбие"}, ChakraIndex: 4,
-    }
-    db.affirmations["lh_002"] = Affirmation{
-        ID: "lh_002", Text: "Я в безопасности. Всё хорошо в моём мире", Author: "Луиза Хей",
-        Keywords: []string{"safety", "безопасность"}, ChakraIndex: 0,
-    }
-    db.affirmations["lh_003"] = Affirmation{
-        ID: "lh_003", Text: "Я достойна любви и уважения", Author: "Луиза Хей",
-        Keywords: []string{"self-worth", "достоинство"}, ChakraIndex: 3,
-    }
+func (db *AffirmationDB) loadMedicalMapping() {
     db.medicalMap["alopecia"] = "облысение"
     db.medicalMap["цефалгия"] = "головная боль"
     db.medicalMap["гастрит"] = "воспаление желудка"
+    db.medicalMap["бессонница"] = "нарушение сна"
+    db.medicalMap["депрессия"] = "подавленное состояние"
+    db.medicalMap["тревожность"] = "беспокойство"
 }
 
 func (db *AffirmationDB) FindByKeyword(keyword string) []Affirmation {
@@ -53,7 +45,24 @@ func (db *AffirmationDB) FindByKeyword(keyword string) []Affirmation {
     return results
 }
 
+func (db *AffirmationDB) GetDailyAffirmation(day int) *Affirmation {
+    for _, aff := range db.affirmations {
+        if aff.DayOfYear == day {
+            return &aff
+        }
+    }
+    // Если не найдено, возвращаем первую
+    if len(db.affirmations) > 0 {
+        return &db.affirmations[0]
+    }
+    return nil
+}
+
+func (db *AffirmationDB) GetAll() []Affirmation {
+    return db.affirmations
+}
+
 func containsKeyword(s, substr string) bool {
-    return len(s) >= len(substr) && (s == substr || 
+    return len(s) >= len(substr) && (s == substr ||
         (len(s) > len(substr) && (s[:len(substr)] == substr || s[len(s)-len(substr):] == substr)))
 }

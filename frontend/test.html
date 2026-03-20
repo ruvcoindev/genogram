@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Genogram System Test</title>
+    <style>
+        body { font-family: monospace; padding: 20px; background: #1e1e2f; color: #fff; }
+        .card { background: #2d2d3a; padding: 20px; margin: 20px 0; border-radius: 12px; }
+        button { background: #6366f1; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; }
+        input, textarea { width: 100%; padding: 10px; margin: 10px 0; background: #1e1e2f; color: #fff; border: 1px solid #6366f1; border-radius: 8px; }
+        pre { background: #1e1e2f; padding: 10px; border-radius: 8px; overflow-x: auto; }
+        .success { color: #10b981; }
+        .error { color: #ef4444; }
+    </style>
+</head>
+<body>
+    <h1>🧬 Genogram System v1.1</h1>
+    <p>API Base: <span id="api-base">http://localhost:8082/api/v1</span></p>
+    
+    <div class="card">
+        <h3>🏥 Health Check</h3>
+        <button onclick="testHealth()">Проверить</button>
+        <pre id="health-result"></pre>
+    </div>
+    
+    <div class="card">
+        <h3>🧠 CBT Анализ</h3>
+        <input type="text" id="cbt-thought" placeholder="Введите автоматическую мысль..." value="Я всегда все порчу">
+        <button onclick="testCBT()">Анализировать</button>
+        <pre id="cbt-result"></pre>
+    </div>
+    
+    <div class="card">
+        <h3>🤒 Симптомы</h3>
+        <button onclick="testSymptoms()">Получить симптомы</button>
+        <pre id="symptoms-result"></pre>
+    </div>
+    
+    <div class="card">
+        <h3>✨ Аффирмации</h3>
+        <input type="text" id="affirmation-keyword" placeholder="Ключевое слово..." value="любовь">
+        <button onclick="testAffirmations()">Поиск</button>
+        <pre id="affirmations-result"></pre>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:8082/api/v1';
+        
+        async function testHealth() {
+            try {
+                const res = await fetch(`${API_BASE}/health`);
+                const data = await res.json();
+                document.getElementById('health-result').innerHTML = JSON.stringify(data, null, 2);
+            } catch(e) {
+                document.getElementById('health-result').innerHTML = '❌ Ошибка: ' + e.message;
+            }
+        }
+        
+        async function testCBT() {
+            const thought = document.getElementById('cbt-thought').value;
+            try {
+                const res = await fetch(`${API_BASE}/cbt/analyze`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ thought })
+                });
+                const data = await res.json();
+                document.getElementById('cbt-result').innerHTML = JSON.stringify(data, null, 2);
+            } catch(e) {
+                document.getElementById('cbt-result').innerHTML = '❌ Ошибка: ' + e.message;
+            }
+        }
+        
+        async function testSymptoms() {
+            try {
+                const res = await fetch(`${API_BASE}/symptoms`);
+                const data = await res.json();
+                document.getElementById('symptoms-result').innerHTML = JSON.stringify(data, null, 2);
+            } catch(e) {
+                document.getElementById('symptoms-result').innerHTML = '❌ Ошибка: ' + e.message;
+            }
+        }
+        
+        async function testAffirmations() {
+            const keyword = document.getElementById('affirmation-keyword').value;
+            try {
+                const res = await fetch(`${API_BASE}/affirmations?keyword=${encodeURIComponent(keyword)}`);
+                const data = await res.json();
+                document.getElementById('affirmations-result').innerHTML = JSON.stringify(data, null, 2);
+            } catch(e) {
+                document.getElementById('affirmations-result').innerHTML = '❌ Ошибка: ' + e.message;
+            }
+        }
+        
+        // Автоматический тест при загрузке
+        testHealth();
+    </script>
+</body>
+</html>

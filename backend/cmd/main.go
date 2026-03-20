@@ -11,53 +11,72 @@ import (
     "time"
 
     "github.com/gorilla/mux"
-    "github.com/gorilla/websocket"
     "github.com/joho/godotenv"
     "go.uber.org/zap"
 )
 
 func main() {
-    // Load .env
     if err := godotenv.Load(); err != nil {
         log.Println("No .env file found")
     }
 
-    // Logger
     logger, _ := zap.NewProduction()
     defer logger.Sync()
 
     logger.Info("Starting Genogram System v1.1")
 
-    // Router
     router := mux.NewRouter()
-
-    // API v1
+    
+    // Применяем CORS middleware ко всем маршрутам
+    router.Use(corsMiddleware)
+    
     api := router.PathPrefix("/api/v1").Subrouter()
 
     // Health check
     api.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
         w.Header().Set("Content-Type", "application/json")
         json.NewEncoder(w).Encode(map[string]string{
-            "status": "ok",
+            "status":  "ok",
             "version": "1.1.0",
             "message": "Genogram System is running",
         })
-    })
+    }).Methods("GET", "OPTIONS")
 
-    // Serve frontend static files
+    // CBT analyze
+    api.HandleFunc("/cbt/analyze", handleCBTAnalyze).Methods("POST", "OPTIONS")
+
+    // Symptoms
+    api.HandleFunc("/symptoms", handleGetSymptoms).Methods("GET", "OPTIONS")
+
+    // Psychology traumas
+    api.HandleFunc("/psychology/traumas", handleGetTraumas).Methods("GET", "OPTIONS")
+
+    // Affirmations
+    api.HandleFunc("/affirmations", handleGetAffirmations).Methods("GET", "OPTIONS")
+
+    // Stats
+    api.HandleFunc("/stats", handleGetStats).Methods("GET", "OPTIONS")
+
+    // Diary
+    api.HandleFunc("/diary/sections", handleGetDiarySections).Methods("GET", "OPTIONS")
+    api.HandleFunc("/diary/questions", handleGetDiaryQuestions).Methods("GET", "OPTIONS")
+    api.HandleFunc("/diary/entries", handleSaveDiaryEntry).Methods("POST", "OPTIONS")
+
+    // Frontend static files
     router.PathPrefix("/").Handler(http.FileServer(http.Dir("../frontend")))
 
-    // Server
+    port := getEnv("SERVER_PORT", "8080")
+    host := getEnv("SERVER_HOST", "0.0.0.0")
+    
     srv := &http.Server{
         Handler:      router,
-        Addr:         ":" + getEnv("SERVER_PORT", "8080"),
+        Addr:         host + ":" + port,
         WriteTimeout: 15 * time.Second,
         ReadTimeout:  15 * time.Second,
     }
 
-    // Graceful shutdown
     go func() {
-        logger.Info("Server started", zap.String("port", getEnv("SERVER_PORT", "8080")))
+        logger.Info("Server started", zap.String("address", srv.Addr))
         if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
             logger.Fatal("Server failed", zap.Error(err))
         }

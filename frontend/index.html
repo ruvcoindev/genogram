@@ -6,43 +6,216 @@
     <title>Genogram System v1.1</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="/css/style.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 40px;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        h1 {
+            color: white;
+            text-align: center;
+            margin-bottom: 40px;
+            font-size: 2.5rem;
+        }
+        .card {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        .card h2 {
+            color: #333;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        textarea, input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            font-family: inherit;
+            font-size: 14px;
+            margin-bottom: 15px;
+        }
+        button {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 14px;
+            margin-right: 10px;
+        }
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        pre {
+            background: #f5f5f5;
+            padding: 15px;
+            border-radius: 10px;
+            overflow-x: auto;
+            font-size: 12px;
+            margin-top: 15px;
+        }
+        .status {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+        .status.online { background: #10b981; }
+        .status.offline { background: #ef4444; }
+        .badge {
+            background: #667eea;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 20px;
+            font-size: 12px;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+        }
+        @media (max-width: 768px) {
+            .grid { grid-template-columns: 1fr; }
+            body { padding: 20px; }
+        }
+    </style>
 </head>
 <body>
-    <div class="app">
-        <aside class="sidebar">
-            <div class="logo">
-                <div class="logo-icon"><div class="cube"></div></div>
-                <span class="logo-text">Genogram<span class="highlight">System</span></span>
-                <span class="version">v1.1</span>
+    <div class="container">
+        <h1>🧬 Genogram System v1.1</h1>
+        
+        <div class="card">
+            <h2><i class="fas fa-heartbeat"></i> Статус системы</h2>
+            <div id="status">
+                <span class="status offline"></span> Проверка подключения...
             </div>
-            <nav class="nav-menu">
-                <a href="#" class="nav-item active" data-page="dashboard"><i class="fas fa-chart-line"></i><span>Дашборд</span></a>
-                <a href="#" class="nav-item" data-page="cbt"><i class="fas fa-brain"></i><span>CBT дневник</span></a>
-                <a href="#" class="nav-item" data-page="diary"><i class="fas fa-book-open"></i><span>Дневник "Кто я"</span></a>
-                <a href="#" class="nav-item" data-page="symptoms"><i class="fas fa-heartbeat"></i><span>Симптомы</span></a>
-                <a href="#" class="nav-item" data-page="psychology"><i class="fas fa-feather-alt"></i><span>Психология</span></a>
-                <a href="#" class="nav-item" data-page="affirmations"><i class="fas fa-hand-sparkles"></i><span>Аффирмации</span></a>
-            </nav>
-            <div class="sidebar-footer">
-                <div class="user-info"><div class="avatar">Т</div><div class="user-details"><span class="user-name">Терапевт</span><span class="user-role">Семейный психолог</span></div></div>
-                <button class="theme-toggle" id="themeToggle"><i class="fas fa-moon"></i></button>
+        </div>
+        
+        <div class="grid">
+            <div class="card">
+                <h2><i class="fas fa-brain"></i> CBT Анализ мыслей</h2>
+                <textarea id="cbt-thought" rows="3" placeholder="Введите автоматическую мысль...">Я всегда все порчу, я никчемный</textarea>
+                <button onclick="analyzeCBT()">Анализировать</button>
+                <pre id="cbt-result"></pre>
             </div>
-        </aside>
-        <main class="main-content">
-            <div id="dashboard-page" class="page active">
-                <div class="page-header"><h1>Дашборд</h1><p>Обзор системы</p></div>
-                <div class="dashboard-stats"><div class="stat-card"><div class="stat-icon"><i class="fas fa-brain"></i></div><div class="stat-info"><h3 id="stat-cbt">0</h3><p>CBT записей</p></div></div><div class="stat-card"><div class="stat-icon"><i class="fas fa-book"></i></div><div class="stat-info"><h3 id="stat-diary">0</h3><p>Записей дневника</p></div></div></div>
-                <div class="dashboard-grid"><div class="card"><div class="card-header"><h3><i class="fas fa-brain"></i> Последние CBT записи</h3></div><div class="card-body" id="recent-cbt"><p class="placeholder">Нет записей</p></div></div></div>
+            
+            <div class="card">
+                <h2><i class="fas fa-heartbeat"></i> Симптомы</h2>
+                <button onclick="loadSymptoms()">Загрузить симптомы</button>
+                <pre id="symptoms-result"></pre>
             </div>
-            <div id="cbt-page" class="page"><div class="page-header"><h1>CBT дневник мыслей</h1><p>Когнитивно-поведенческая терапия</p></div><div class="cbt-layout"><div class="cbt-form card"><h3>Новая запись</h3><form id="cbt-form"><div class="form-group"><label>Ситуация</label><textarea id="cbt-situation" rows="2" placeholder="Что произошло?"></textarea></div><div class="form-group"><label>Автоматическая мысль</label><textarea id="cbt-thought" rows="2" placeholder="Что пришло в голову?"></textarea></div><button type="submit" class="btn btn-primary">Анализировать</button></form></div><div class="cbt-analysis card"><h3>Анализ</h3><div id="cbt-analysis-result"><p class="placeholder">Заполните форму</p></div></div></div></div>
-            <div id="diary-page" class="page"><div class="page-header"><h1>Дневник "Кто я"</h1><p>Саморефлексия</p></div><div id="diary-sections"></div></div>
-            <div id="symptoms-page" class="page"><div class="page-header"><h1>Чекер симптомов</h1><p>Понять, что происходит с телом</p></div><div id="symptoms-list"></div><button id="analyze-symptoms" class="btn btn-primary">Проанализировать</button><div id="symptoms-result"></div></div>
-            <div id="psychology-page" class="page"><div class="page-header"><h1>Психологический профиль</h1><p>Травмы и пути исцеления</p></div><div id="traumas-list"></div></div>
-            <div id="affirmations-page" class="page"><div class="page-header"><h1>Аффирмации</h1><p>Сила слова для исцеления</p></div><div class="affirmation-card" id="daily-affirmation"><div class="affirmation-icon">✨</div><div id="affirmation-text" class="affirmation-text">Я люблю и одобряю себя</div><div class="affirmation-author">Луиза Хей</div><button class="btn btn-outline" onclick="refreshAffirmation()"><i class="fas fa-sync-alt"></i> Новая</button></div><div class="affirmations-search card"><h3>Поиск</h3><input type="text" id="affirmation-search" placeholder="Поиск..."><button onclick="searchAffirmations()">Найти</button><div id="affirmation-results"></div></div></div>
-        </main>
+            
+            <div class="card">
+                <h2><i class="fas fa-hand-sparkles"></i> Аффирмации</h2>
+                <input type="text" id="affirmation-keyword" placeholder="Ключевое слово..." value="любовь">
+                <button onclick="searchAffirmations()">Поиск</button>
+                <pre id="affirmations-result"></pre>
+            </div>
+            
+            <div class="card">
+                <h2><i class="fas fa-feather-alt"></i> Психология</h2>
+                <button onclick="loadTraumas()">Загрузить травмы</button>
+                <pre id="traumas-result"></pre>
+            </div>
+        </div>
     </div>
-    <script src="/js/api.js"></script>
-    <script src="/js/app.js"></script>
+
+    <script>
+        const API_BASE = 'http://localhost:8082/api/v1';
+        
+        async function checkStatus() {
+            try {
+                const res = await fetch(`${API_BASE}/health`);
+                const data = await res.json();
+                document.getElementById('status').innerHTML = `
+                    <span class="status online"></span> 
+                    ✅ Сервер работает (${data.version})
+                    <span class="badge">${data.message}</span>
+                `;
+            } catch(e) {
+                document.getElementById('status').innerHTML = `
+                    <span class="status offline"></span> 
+                    ❌ Сервер не отвечает. Убедитесь, что backend запущен на порту 8082
+                `;
+            }
+        }
+        
+        async function analyzeCBT() {
+            const thought = document.getElementById('cbt-thought').value;
+            const resultDiv = document.getElementById('cbt-result');
+            resultDiv.textContent = 'Анализируем...';
+            
+            try {
+                const res = await fetch(`${API_BASE}/cbt/analyze`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ thought })
+                });
+                const data = await res.json();
+                resultDiv.textContent = JSON.stringify(data, null, 2);
+            } catch(e) {
+                resultDiv.textContent = '❌ Ошибка: ' + e.message;
+            }
+        }
+        
+        async function loadSymptoms() {
+            const resultDiv = document.getElementById('symptoms-result');
+            resultDiv.textContent = 'Загрузка...';
+            
+            try {
+                const res = await fetch(`${API_BASE}/symptoms`);
+                const data = await res.json();
+                resultDiv.textContent = JSON.stringify(data, null, 2);
+            } catch(e) {
+                resultDiv.textContent = '❌ Ошибка: ' + e.message;
+            }
+        }
+        
+        async function searchAffirmations() {
+            const keyword = document.getElementById('affirmation-keyword').value;
+            const resultDiv = document.getElementById('affirmations-result');
+            resultDiv.textContent = 'Поиск...';
+            
+            try {
+                const res = await fetch(`${API_BASE}/affirmations?keyword=${encodeURIComponent(keyword)}`);
+                const data = await res.json();
+                resultDiv.textContent = JSON.stringify(data, null, 2);
+            } catch(e) {
+                resultDiv.textContent = '❌ Ошибка: ' + e.message;
+            }
+        }
+        
+        async function loadTraumas() {
+            const resultDiv = document.getElementById('traumas-result');
+            resultDiv.textContent = 'Загрузка...';
+            
+            try {
+                const res = await fetch(`${API_BASE}/psychology/traumas`);
+                const data = await res.json();
+                resultDiv.textContent = JSON.stringify(data, null, 2);
+            } catch(e) {
+                resultDiv.textContent = '❌ Ошибка: ' + e.message;
+            }
+        }
+        
+        // Загружаем статус при старте
+        checkStatus();
+    </script>
 </body>
 </html>

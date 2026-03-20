@@ -1,3 +1,5 @@
+version: '3.8'
+
 services:
   postgres:
     image: pgvector/pgvector:pg15
@@ -16,24 +18,24 @@ services:
       timeout: 5s
       retries: 5
 
+  neo4j:
+    image: neo4j:5-enterprise
+    ports:
+      - "7474:7474"
+      - "7687:7687"
+    environment:
+      NEO4J_AUTH: neo4j/password
+      NEO4J_ACCEPT_LICENSE_AGREEMENT: "yes"
+    volumes:
+      - neo4j_data:/data
+      - neo4j_logs:/logs
+
   redis:
     image: redis:7-alpine
     ports:
       - "6379:6379"
     volumes:
       - redis_data:/data
-
-  # Заменяем Neo4j Enterprise на Community (бесплатная версия)
-  neo4j:
-    image: neo4j:5-community
-    ports:
-      - "7474:7474"
-      - "7687:7687"
-    environment:
-      NEO4J_AUTH: neo4j/password
-    volumes:
-      - neo4j_data:/data
-      - neo4j_logs:/logs
 
   ollama:
     image: ollama/ollama:latest
@@ -50,7 +52,11 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+      neo4j:
+        condition: service_started
       redis:
+        condition: service_started
+      ollama:
         condition: service_started
     environment:
       POSTGRES_HOST: postgres
